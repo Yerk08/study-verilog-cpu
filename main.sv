@@ -130,7 +130,7 @@ module CPU_brainfck (
 
     assign im_addr  = PC0;
     assign dm_addr  = AC1; 
-    assign dm_wdata = MAC2 + MPC2[6:0];
+    assign dm_wdata = dm_rdata + MPC2[6:0];
     assign dm_we    = (MPC2[7] == 0 && MPC2 != 8'b0);
 
     always @(posedge clk) begin
@@ -154,7 +154,7 @@ module CPU_brainfck (
                 default: ;
             endcase
 
-            if (branch_reset && PC0 != MPC2[5:0]) begin
+            if (branch_reset) begin
                 PC0 <= MPC2[5:0];
                 MPC1 <= 8'b0;
                 MPC2 <= 8'b0;
@@ -214,7 +214,7 @@ module CPU_tb;
         if (dm_we) DM[dm_addr] <= dm_wdata;
     end
 
-    always #5 clk = ~clk;
+    always #1 clk = ~clk;
 
     // Primary testing the chip
     initial begin
@@ -236,13 +236,18 @@ module CPU_tb;
         IM[7] = 8'h01; // DM[AC] += 1
         IM[8] = 8'h81; // AC += 1 [loop start]
         IM[9] = 8'h05; // DM[AC] += 5
-        IM[10] = 8'hC7; // JMP(DM[AC]) 8 [true] - loop
+        IM[10] = 8'hC8; // JMP(DM[AC]) 8 [true] - loop
 
         clk = 0;
         reset = 1;
-        #20 reset = 0;
+        #2 reset = 0;
 
-        repeat(200) @(posedge clk);
+        repeat(30) begin
+            @(posedge clk);
+            $display("Time: %02t | PC2: %h | AC2: %h | Instr: %b", $time, dut.PC0, dut.AC0, dut.MPC1);
+        end
+        $writememh("dm_final.mem", DM); 
+        $display("Memory dump complete.");
         $finish;
     end
 endmodule
