@@ -244,7 +244,7 @@ module CPU_tb;
 
         repeat(30) begin
             @(posedge clk);
-            $display("Time: %02t | PC2: %h | AC2: %h | Instr: %b", $time, dut.PC0, dut.AC0, dut.MPC1);
+            $display("Time: %02t | PC0: %h | AC0: %h | Instr: %b", $time, dut.PC0, dut.AC0, dut.MPC1);
         end
         $writememh("dm_final.mem", DM); 
         $display("Memory dump complete.");
